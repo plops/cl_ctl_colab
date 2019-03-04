@@ -5,10 +5,9 @@ import selenium.webdriver
 import selenium.webdriver.support
 import selenium.webdriver.support.ui
 import selenium.webdriver.support.wait
-driver=selenium.webdriver.Chrome()
-driver.get("https://colab.research.google.com/")
+import selenium.webdriver.support.expected_conditions
 def sel(css):
-    return driver.find_element_by_css_selector()
+    return driver.find_element_by_css_selector(css)
 def wait_css_clickable(css):
     wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
 def waitsel(css):
@@ -38,6 +37,11 @@ def fail(msg):
 def warn(msg):
     print(((bcolors.WARNING)+("{:8d} WARNING ".format(milli_since_last()))+(msg)+(bcolors.ENDC)))
     sys.stdout.flush()
+log("start browser.")
+driver=selenium.webdriver.Chrome()
+wait=selenium.webdriver.support.wait.WebDriverWait(driver, 30)
+log("open website.")
+driver.get("https://colab.research.google.com/notebooks/welcome.ipynb")
 sel(".gb_gb").click()
 f=open("/dev/shm/p")
 pw=f.read().replace("\n", "")
@@ -48,3 +52,6 @@ sel("#identifierNext").click()
 log("enter password.")
 waitsel("input[type='password']").send_keys(pw)
 sel("#passwordNext").click()
+log("enable gpu.")
+sel("#runtime-menu-button .goog-menu-button-caption").click()
+sel("[command='change-runtime-type']").click()
