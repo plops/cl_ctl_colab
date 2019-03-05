@@ -1,5 +1,6 @@
 import sys
 import time
+import pathlib
 import selenium
 import selenium.webdriver
 import selenium.webdriver.common
@@ -9,6 +10,7 @@ import selenium.webdriver.support
 import selenium.webdriver.support.ui
 import selenium.webdriver.support.wait
 import selenium.webdriver.support.expected_conditions
+import subprocess
 class SeleniumMixin(object):
     def __init__(self):
         self._driver=selenium.webdriver.Chrome()
@@ -63,10 +65,13 @@ class Colaboratory(SeleniumMixin):
         log("open website {}.".format(site))
         self._driver.get(site)
         self.sel(".gb_gb").click()
-    def login(self, password_fn="/dev/shm/p"):
-        f=open(password_fn)
+    def get_auth_token(self, fn):
+        f=open(fn)
         pw=f.read().replace("\n", "")
         f.close()
+        return pw
+    def login(self, password_fn="/dev/shm/p"):
+        pw=self.get_auth_token(password_fn)
         log("enter login name.")
         self.waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
         self.sel("#identifierNext").click()
@@ -96,27 +101,20 @@ class Colaboratory(SeleniumMixin):
         entry=self._driver.switch_to_active_element()
         entry.send_keys(code)
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
-    def start_ssh(self, password):
+    def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
         cmd="""
-import random, string
-password = {}
-! wget -q -c -nc https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-! unzip -qq -n ngrok-stable-linux-amd64.zip
 ! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
-! echo root:$password | chpasswd
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-! echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
 ! echo 'export LD_LIBRARY_PATH' >> /root/.bashrc
+! mkdir /root/.ssh
+! chmod go-rwx /root/.ssh
+! echo '''{}''' >> /root/.ssh/authorized_keys
+! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-print('Copy authtoken from https://dashboard.ngrok.com/auth')
-import getpass
-authtoken = getpass.getpass()
-get_ipython().system_raw('./ngrok authtoken $authtoken && ./ngrok tcp 22 &')
-! curl -s http://localhost:4040/api/tunnels | python3 -c 
-'import sys, json; print(json.load(sys.stdin)['tunnels'][0]['public_url'])'
-""".format(password)
+get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')
+""".format(gpu_public_key, host_private_key, host_user, host_port, host)
         self.run(cmd)
     def __init__(self):
         SeleniumMixin.__init__(self)
@@ -124,3 +122,13 @@ get_ipython().system_raw('./ngrok authtoken $authtoken && ./ngrok tcp 22 &')
         self.login()
         self.start()
 colab=Colaboratory()
+self=colab
+to_google="/dev/shm/key_from_here_to_google"
+to_here="/dev/shm/key_from_google_to_here"
+host_user=self.get_auth_token("/dev/shm/host_user")
+pathlib.Path(to_google).unlink()
+pathlib.Path(to_here).unlink()
+subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_google).split(" "))
+subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_here).split(" "))
+subprocess.call("/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys".format(to_here, host_user).split(" "))
+colab.start_ssh(host=self.get_auth_token("/dev/shm/host"), host_user=host_user, host_private_key=self.get_auth_token(to_here), gpu_public_key=self.get_auth_token("{}.pub".format(to_google)))

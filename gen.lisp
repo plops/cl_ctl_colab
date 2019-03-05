@@ -3,10 +3,16 @@
 
 (in-package :cl-py-generator)
 
+;; /dev/shm
+;; p              .. google account
+;; host_password  .. local users password
+;; host           .. internet ip or hostname
+
 (let ((code
        `(do0
 	 (imports (sys
 		   time
+		   pathlib
 		   selenium
 		   selenium.webdriver
 		   selenium.webdriver.common
@@ -17,6 +23,7 @@
 		   selenium.webdriver.support.wait
 		   selenium.webdriver.support.expected_conditions
 					;selenium.webdriver.firefox
+		   subprocess
 		   ))
 
 	 (class SeleniumMixin (object)
@@ -111,13 +118,17 @@
 	       (self._driver.get site)
 	       
 	       (dot (self.sel (string ".gb_gb"))  (click))))
+	  (def get_auth_token (self fn)
+	    (do0
+	     (setf f (open fn)
+		    pw (dot (f.read)
+			    (replace (string "\\n")
+				     (string ""))))
+	     (f.close))
+	    (return pw))
 	  (def login (self &key (password_fn (string "/dev/shm/p")))
 	    (do0
-	     (setf f (open password_fn)
-		   pw (dot (f.read)
-			   (replace (string "\\n")
-				    (string ""))))
-	     (f.close)
+	     (setf pw (self.get_auth_token password_fn))
 	     (do0
 	      (log (string "enter login name."))
 	      (dot (self.waitsel (string "#identifierId"))
@@ -173,7 +184,8 @@
 			 (key_up selenium.webdriver.common.keys.Keys.ENTER)
 			 (key_up selenium.webdriver.common.keys.Keys.SHIFT)
 			 (perform)))
-	  (def start_ssh (self password)
+	  #+nil
+	  (def start_ssh_ngrok (self password)
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
 	    (setf cmd (dot (string3 "
 import random, string
@@ -197,20 +209,70 @@ get_ipython().system_raw('./ngrok authtoken $authtoken && ./ngrok tcp 22 &')
 ")
 			   (format password)))
 	    (self.run cmd))
+	  (def start_ssh (self &key host (host_port 22) host_user host_private_key gpu_public_key)
+	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
+	    (setf cmd (dot (string3 "
+! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+! mkdir -p /var/run/sshd
+! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
+! echo 'export LD_LIBRARY_PATH' >> /root/.bashrc
+! mkdir /root/.ssh
+! chmod go-rwx /root/.ssh
+! echo '''{}''' >> /root/.ssh/authorized_keys
+! echo '''{}''' > /root/.ssh/id_ed25519
+get_ipython().system_raw('/usr/sbin/sshd -D &')
+get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')
+")
+			   (format gpu_public_key
+				   host_private_key
+				   host_user
+				   host_port
+				   host)))
+	    (self.run cmd))
 	  (def __init__ (self)
 	    (SeleniumMixin.__init__ self)
 	    (self.open_colab)
 	    (self.login)
 					;(self.attach_gpu)
 	    (self.start)
+	    
 	    ))
 
 
 	 (setf colab (Colaboratory))
+	 (do0
+		   (setf self colab)
+	  (setf to_google (string "/dev/shm/key_from_here_to_google")
+		to_here (string "/dev/shm/key_from_google_to_here")
+		host_user (self.get_auth_token (string "/dev/shm/host_user")))
+	  (dot (pathlib.Path to_google)  (unlink))
+	  (dot (pathlib.Path to_here)    (unlink))
+	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				(format to_google) (split (string " "))))
+	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				(format to_here) (split (string " "))))
+	  (subprocess.call (dot (string "/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys")
+				(format to_here host_user) (split (string " ")))))
 	 
-	 )))
+	 (colab.start_ssh :host (self.get_auth_token (string "/dev/shm/host"))
+			  :host_user host_user
+			  :host_private_key (self.get_auth_token to_here)
+			  :gpu_public_key (self.get_auth_token (dot (string "{}.pub") (format to_google)))))))
   (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code)
   (write-source "/dev/shm/s"
 		`(do0
-		  )))
+		  (do0
+		   (setf self colab)
+	  (setf to_google (string "/dev/shm/key_from_here_to_google")
+		to_here (string "/dev/shm/key_from_google_to_here")
+		host_user (self.get_auth_token (string "/dev/shm/host_user")))
+	  (dot (pathlib.Path to_google)  (unlink))
+	  (dot (pathlib.Path to_here)    (unlink))
+	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				(format to_google) (split (string " "))))
+	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				(format to_here) (split (string " "))))
+	  (subprocess.call (dot (string "/usr/bin/sudo /bin/cp {} /home/{}/.ssh/authorized_keys")
+				(format to_here host_user) (split (string " "))))))))
 
