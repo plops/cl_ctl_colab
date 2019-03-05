@@ -6,13 +6,28 @@ import selenium.webdriver.support
 import selenium.webdriver.support.ui
 import selenium.webdriver.support.wait
 import selenium.webdriver.support.expected_conditions
-def sel(css):
-    return driver.find_element_by_css_selector(css)
-def wait_css_clickable(css):
-    wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
-def waitsel(css):
-    wait_css_clickable(css)
-    return sel(css)
+class SeleniumMixin(object):
+    def __init__(self):
+        self._driver=selenium.webdriver.Chrome()
+        self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 30)
+    def sel(self, css):
+        return self._driver.find_element_by_css_selector(css)
+    def selx(self, xpath):
+        return self._driver.find_element_by_xpath(xpath)
+    def wait_css_clickable(self, css):
+        self._wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
+    def wait_css_gone(self, css):
+        self._wait.until(selenium.webdriver.support.expected_conditions.invisibility_of_element_located((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
+    def wait_css_clickable(self, css):
+        self._wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
+    def wait_xpath_clickable(self, xpath):
+        self._wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.XPATH,xpath,)))
+    def waitsel(self, css):
+        self.wait_css_clickable(css)
+        return self.sel(css)
+    def waitselx(self, xpath):
+        self.wait_xpath_clickable(xpath)
+        return selx(xpath)
 def current_milli_time():
     return int(round(((1000)*(time.time()))))
 global g_last_timestamp
@@ -37,21 +52,39 @@ def fail(msg):
 def warn(msg):
     print(((bcolors.WARNING)+("{:8d} WARNING ".format(milli_since_last()))+(msg)+(bcolors.ENDC)))
     sys.stdout.flush()
-log("start browser.")
-driver=selenium.webdriver.Chrome()
-wait=selenium.webdriver.support.wait.WebDriverWait(driver, 30)
-log("open website.")
-driver.get("https://colab.research.google.com/notebooks/welcome.ipynb")
-sel(".gb_gb").click()
-f=open("/dev/shm/p")
-pw=f.read().replace("\n", "")
-f.close()
-log("enter login name.")
-waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
-sel("#identifierNext").click()
-log("enter password.")
-waitsel("input[type='password']").send_keys(pw)
-sel("#passwordNext").click()
-log("enable gpu.")
-sel("#runtime-menu-button .goog-menu-button-caption").click()
-sel("[command='change-runtime-type']").click()
+class Colaboratory(SeleniumMixin):
+    def open_colab(self):
+        log("open website.")
+        self._driver.get("https://colab.research.google.com/notebooks/welcome.ipynb")
+        self.sel(".gb_gb").click()
+    def login(self, password_fn="/dev/shm/p"):
+        f=open(password_fn)
+        pw=f.read().replace("\n", "")
+        f.close()
+        log("enter login name.")
+        self.waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
+        self.sel("#identifierNext").click()
+        log("enter password.")
+        self.waitsel("input[type='password']").send_keys(pw)
+        self.sel("#passwordNext").click()
+    def attach_gpu(self):
+        log("enable gpu.")
+        self.waitsel("#runtime-menu-button .goog-menu-button-caption").click()
+        self.waitsel("#input-4").click()
+        self.waitselx("xpath=//paper-item[@value='GPU']")
+        self.waitsel("#ok").click()
+    def start(self):
+        log("start vm instance.")
+        self.waitsel("#connect .colab-toolbar-button").click()
+    def stop(self):
+        log("stop vm instance.")
+        self.waitsel("#runtime-menu-button .goog-menu-button-caption").click()
+        self.waitsel("css=#3A 21 > .goog-menuitem-content").click()
+        self.waitsel("css=.button-action-column > .style-scope").click()
+        self.waitsel("#ok").click()
+    def __init__(self):
+        SeleniumMixin.__init__(self)
+        self.open_colab()
+        self.login()
+        self.attach_gpu()
+colab=Colaboratory()
