@@ -10,11 +10,12 @@ import selenium.webdriver.support
 import selenium.webdriver.support.ui
 import selenium.webdriver.support.wait
 import selenium.webdriver.support.expected_conditions
+import pyperclip
 import subprocess
 class SeleniumMixin(object):
     def __init__(self):
         self._driver=selenium.webdriver.Chrome()
-        self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 5)
+        self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 2)
     def sel(self, css):
         log("sel css={}".format(css))
         return self._driver.find_element_by_css_selector(css)
@@ -75,7 +76,9 @@ class Colaboratory(SeleniumMixin):
     def login(self, password_fn="/dev/shm/p"):
         pw=self.get_auth_token(password_fn)
         log("enter login name.")
-        self.waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
+        pyperclip.copy("martinkielhorn@effectphotonics.nl")
+        time.sleep(1)
+        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
         self.sel("#identifierNext").click()
         log("enter password.")
         self.waitsel("input[type='password']").send_keys(pw)
@@ -98,16 +101,16 @@ class Colaboratory(SeleniumMixin):
         self.waitselx("//paper-button[text()[contains(.,'Terminate')]]").send_keys("\n")
         self.waitselx("//paper-button[@id='ok']").send_keys("\n")
         self.selx("//paper-button[@class='dismiss style-scope colab-sessions-dialog']").send_keys("\n")
-    def set_text(self, element, text):
-        element._parent.execute_script("""var elm = arguments[0], text = arguments[1];
-elm.focus();
-elm.value = text;
-elm.dispatchEvent(new Event('change'));
-""")
     def run(self, code):
+        log("create new code cell.")
         self.selx("//colab-toolbar-button[@command='add-code']").click()
         entry=self._driver.switch_to_active_element()
-        self.set_text(entry, code)
+        log("copy code.")
+        time.sleep(5)
+        log("paste code into cell.")
+        pyperclip.copy(code)
+        entry.send_keys(((selenium.webdriver.common.keys.Keys.CONTROL)+("v")))
+        log("execute code cell.")
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
         cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null

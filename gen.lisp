@@ -23,14 +23,14 @@
 		   selenium.webdriver.support.wait
 		   selenium.webdriver.support.expected_conditions
 					;selenium.webdriver.firefox
-		   ;pyperclip
+		   pyperclip
 		   subprocess
 		   ))
 
 	 (class SeleniumMixin (object)
 		(def __init__ (self)
 		  (setf self._driver (selenium.webdriver.Chrome)
-			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 5) ))
+			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 2)))
 	 	(def sel (self css)
 		  (log (dot (string "sel css={}")
 			    (format css)))
@@ -134,6 +134,19 @@
 	     (setf pw (self.get_auth_token password_fn))
 	     (do0
 	      (log (string "enter login name."))
+
+	      (pyperclip.copy (string "martinkielhorn@effectphotonics.nl"))
+	      (time.sleep 1)
+	      #+nil (dot (self.waitsel (string "#identifierId"))
+		   (send_keys (+ selenium.webdriver.common.keys.Keys.CONTROL (string "v"))))
+
+	      (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
+			 (key_down selenium.webdriver.common.keys.Keys.CONTROL)
+			 (key_down (string "v"))
+			 (key_up (string "v"))
+			 (key_up selenium.webdriver.common.keys.Keys.CONTROL)
+			 (perform))
+	      #+nil
 	      (dot (self.waitsel (string "#identifierId"))
 		   (send_keys (string "martinkielhorn@effectphotonics.nl")))
 	      (dot (self.sel (string "#identifierNext"))
@@ -177,7 +190,7 @@
 	     (dot (self.waitselx (string "//paper-button[@id='ok']")) (send_keys (string "\\n")))
 	     (dot (self.selx (string "//paper-button[@class='dismiss style-scope colab-sessions-dialog']"))
 		  (send_keys (string "\\n")))))
-	  (def set_text (self element text)
+	  #+nil (def set_text (self element text)
 	    ;; if (!('value' in elm))
 ;;  throw new Error('Expected an <input> or <textarea>');
 
@@ -187,11 +200,19 @@ elm.value = text;
 elm.dispatchEvent(new Event('change'));
 " element text)))
 	  (def run (self code)
+	    (log (string "create new code cell."))
 		    (dot (self.selx (string "//colab-toolbar-button[@command='add-code']")) (click))
 		    (setf entry (self._driver.switch_to_active_element))
-		    ;(pyperclip.copy code)
+		    (log (string "copy code."))
+		    
+		    
 					;(dot entry (send_keys (pyperclip.paste)))
-		    (self.set_text entry code)
+					;(self.set_text entry code)
+		    (time.sleep 5)
+		    (log (string "paste code into cell."))
+		    (pyperclip.copy code)
+		    (dot entry (send_keys (+ selenium.webdriver.common.keys.Keys.CONTROL (string "v"))))
+		    (log (string "execute code cell."))
 		    (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
 			 (key_down selenium.webdriver.common.keys.Keys.SHIFT)
 			 (key_down selenium.webdriver.common.keys.Keys.ENTER)
@@ -263,4 +284,3 @@ get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} 
 				(format to_here) (split (string " "))))
 	  (subprocess.call (dot (string "/usr/bin/sudo /bin/cp {} /home/{}/.ssh/authorized_keys")
 				(format to_here host_user) (split (string " "))))))))
-
