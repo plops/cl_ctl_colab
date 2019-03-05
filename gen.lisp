@@ -184,31 +184,6 @@
 			 (key_up selenium.webdriver.common.keys.Keys.ENTER)
 			 (key_up selenium.webdriver.common.keys.Keys.SHIFT)
 			 (perform)))
-	  #+nil
-	  (def start_ssh_ngrok (self password)
-	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
-	    (setf cmd (dot (string3 "
-import random, string
-password = {}
-! wget -q -c -nc https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-! unzip -qq -n ngrok-stable-linux-amd64.zip
-! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
-! echo root:$password | chpasswd
-! mkdir -p /var/run/sshd
-! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-! echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
-! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
-! echo 'export LD_LIBRARY_PATH' >> /root/.bashrc
-get_ipython().system_raw('/usr/sbin/sshd -D &')
-print('Copy authtoken from https://dashboard.ngrok.com/auth')
-import getpass
-authtoken = getpass.getpass()
-get_ipython().system_raw('./ngrok authtoken $authtoken && ./ngrok tcp 22 &')
-! curl -s http://localhost:4040/api/tunnels | python3 -c \
-'import sys, json; print(json.load(sys.stdin)['tunnels'][0]['public_url'])'
-")
-			   (format password)))
-	    (self.run cmd))
 	  (def start_ssh (self &key host (host_port 22) host_user host_private_key gpu_public_key)
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
 	    (setf cmd (dot (string3 "
