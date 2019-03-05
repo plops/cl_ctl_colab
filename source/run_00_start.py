@@ -112,18 +112,7 @@ class Colaboratory(SeleniumMixin):
         log("execute code cell.")
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
-        cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
-! mkdir -p /var/run/sshd
-! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
-! echo 'export LD_LIBRARY_PATH' >> /root/.bashrc
-! mkdir /root/.ssh
-! chmod go-rwx /root/.ssh
-! echo '''{}''' >> /root/.ssh/authorized_keys
-! echo '''{}''' > /root/.ssh/id_ed25519
-get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')
-""".format(gpu_public_key, host_private_key, host_user, host_port, host)
+        cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null\n! mkdir -p /var/run/sshd\n! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config\n! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc\n! echo 'export LD_LIBRARY_PATH' >> /root/.bashrc\n! mkdir /root/.ssh\n! chmod go-rwx /root/.ssh\n! echo '''{}''' >> /root/.ssh/authorized_keys\n! echo '''{}''' > /root/.ssh/id_ed25519\nget_ipython().system_raw('/usr/sbin/sshd -D &')\nget_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')\n""".format(gpu_public_key, host_private_key, host_user, host_port, host)
         self.run(cmd)
     def __init__(self):
         SeleniumMixin.__init__(self)

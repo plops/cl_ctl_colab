@@ -1,5 +1,8 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
-  (ql:quickload :cl-py-generator))
+  (ql:quickload "cl-py-generator")
+  (ql:quickload "cl-ppcre"))
+
+
 
 (in-package :cl-py-generator)
 
@@ -7,6 +10,7 @@
 ;; p              .. google account
 ;; host_password  .. local users password
 ;; host           .. internet ip or hostname
+
 
 (let ((code
        `(do0
@@ -231,7 +235,8 @@ elm.dispatchEvent(new Event('change'));
 			 (perform)))
 	  (def start_ssh (self &key host (host_port 22) host_user host_private_key gpu_public_key)
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
-	    (setf cmd (dot (string3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+	    (setf cmd (dot (string3 ,(cl-ppcre:regex-replace-all "
+" "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
@@ -242,7 +247,8 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
 get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')
-")
+" "\\n")
+				    )
 			   (format gpu_public_key
 				   host_private_key
 				   host_user
