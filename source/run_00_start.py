@@ -2,6 +2,9 @@ import sys
 import time
 import selenium
 import selenium.webdriver
+import selenium.webdriver.common
+import selenium.webdriver.common.keys
+import selenium.webdriver.common.action_chains
 import selenium.webdriver.support
 import selenium.webdriver.support.ui
 import selenium.webdriver.support.wait
@@ -88,9 +91,14 @@ class Colaboratory(SeleniumMixin):
         self.waitselx("//paper-button[text()[contains(.,'Terminate')]]").send_keys("\n")
         self.waitselx("//paper-button[@id='ok']").send_keys("\n")
         self.selx("//paper-button[@class='dismiss style-scope colab-sessions-dialog']").send_keys("\n")
+    def run(self, code):
+        self.selx("//colab-toolbar-button[@command='add-code']").click()
+        entry=self._driver.switch_to_active_element()
+        entry.send_keys(code)
+        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def __init__(self):
         SeleniumMixin.__init__(self)
         self.open_colab()
         self.login()
-        self.attach_gpu()
+        self.start()
 colab=Colaboratory()

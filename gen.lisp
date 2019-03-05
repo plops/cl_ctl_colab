@@ -9,6 +9,9 @@
 		   time
 		   selenium
 		   selenium.webdriver
+		   selenium.webdriver.common
+		   selenium.webdriver.common.keys
+		   selenium.webdriver.common.action_chains
 		   selenium.webdriver.support
 		   selenium.webdriver.support.ui
 		   selenium.webdriver.support.wait
@@ -160,12 +163,23 @@
 	     (dot (self.waitselx (string "//paper-button[@id='ok']")) (send_keys (string "\\n")))
 	     (dot (self.selx (string "//paper-button[@class='dismiss style-scope colab-sessions-dialog']"))
 		  (send_keys (string "\\n")))))
-	  
+	  (def run (self code)
+		    (dot (self.selx (string "//colab-toolbar-button[@command='add-code']")) (click))
+		    (setf entry (self._driver.switch_to_active_element))
+		    (dot entry (send_keys code))
+		    (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
+			 (key_down selenium.webdriver.common.keys.Keys.SHIFT)
+			 (key_down selenium.webdriver.common.keys.Keys.ENTER)
+			 (key_up selenium.webdriver.common.keys.Keys.ENTER)
+			 (key_up selenium.webdriver.common.keys.Keys.SHIFT)
+			 (perform)))
 	  (def __init__ (self)
 	    (SeleniumMixin.__init__ self)
 	    (self.open_colab)
 	    (self.login)
-	    (self.attach_gpu)))
+					;(self.attach_gpu)
+	    (self.start)
+	    ))
 
 
 	 (setf colab (Colaboratory))
