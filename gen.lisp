@@ -102,8 +102,10 @@
 	  
 	  (def open_colab (self)
 	    (do0
-	       (log (string "open website."))
-	       (self._driver.get (string "https://colab.research.google.com/notebooks/welcome.ipynb"))
+	     (setf site (string "https://colab.research.google.com/notebooks/welcome.ipynb"))
+	     (log (dot (string "open website {}.")
+		       (format site)))
+	       (self._driver.get site)
 	       
 	       (dot (self.sel (string ".gb_gb"))  (click))))
 	  (def login (self &key (password_fn (string "/dev/shm/p")))
@@ -131,8 +133,11 @@
 	    ;; i used css selector gadget (chromium) and selenium ide in firefox
 	    (log (string "enable gpu."))
 	    (time.sleep 1)
-	    (dot (self.selx (string "(.//*[normalize-space(text()) and normalize-space(.)='Insert'])[1]/following::div[5]")) (click))
-	    (dot (self._driver.find_element_by_id (string ":1z")) (click))
+					;(dot (self.selx (string "(.//*[normalize-space(text()) and normalize-space(.)='Insert'])[1]/following::div[5]")) (click))
+	    
+					;(dot (self._driver.find_element_by_id (string ":1z")) (click))
+	    (dot (self.sel (string "#runtime-menu-button")) (click))
+	    (dot (self.selx (string "//div[@command='change-runtime-type']")) (click))
 	    
 	    (dot (self.selx (string "//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input"))
 		 (send_keys (string "\\n")))
@@ -147,13 +152,15 @@
 	  (def stop (self)
 	    (do0
 	     (log (string "stop vm instance."))
-	     ;; runtime menu
-	     (dot (self.waitsel (string "#runtime-menu-button .goog-menu-button-caption")) (click))
-	     ;; manage sessions
-	     (dot (self.waitsel (string "css=#\3A 21 > .goog-menuitem-content")) (click))
+	     (dot (self.sel (string "#runtime-menu-button")) (click))
+	     (dot (self.selx (string "//div[@command='manage-sessions']")) (click))
+	     
 	     ;; click terminate on the vm
-	     (dot (self.waitsel (string "css=.button-action-column > .style-scope")) (click))
-	     (dot (self.waitsel (string "#ok")) (click))))
+	     (dot (self.waitselx (string "//paper-button[text()[contains(.,'Terminate')]]")) (send_keys (string "\\n")))
+	     (dot (self.waitselx (string "//paper-button[@id='ok']")) (send_keys (string "\\n")))
+	     (dot (self.selx (string "//paper-button[@class='dismiss style-scope colab-sessions-dialog']"))
+		  (send_keys (string "\\n")))))
+	  
 	  (def __init__ (self)
 	    (SeleniumMixin.__init__ self)
 	    (self.open_colab)
@@ -164,4 +171,7 @@
 	 (setf colab (Colaboratory))
 	 
 	 )))
-  (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code))
+  (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code)
+  (write-source "/dev/shm/s"
+		`(do0
+		  )))

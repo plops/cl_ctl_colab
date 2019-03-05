@@ -56,8 +56,9 @@ def warn(msg):
     sys.stdout.flush()
 class Colaboratory(SeleniumMixin):
     def open_colab(self):
-        log("open website.")
-        self._driver.get("https://colab.research.google.com/notebooks/welcome.ipynb")
+        site="https://colab.research.google.com/notebooks/welcome.ipynb"
+        log("open website {}.".format(site))
+        self._driver.get(site)
         self.sel(".gb_gb").click()
     def login(self, password_fn="/dev/shm/p"):
         f=open(password_fn)
@@ -72,8 +73,8 @@ class Colaboratory(SeleniumMixin):
     def attach_gpu(self):
         log("enable gpu.")
         time.sleep(1)
-        self.selx("(.//*[normalize-space(text()) and normalize-space(.)='Insert'])[1]/following::div[5]").click()
-        self._driver.find_element_by_id(":1z").click()
+        self.sel("#runtime-menu-button").click()
+        self.selx("//div[@command='change-runtime-type']").click()
         self.selx("//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input").send_keys("\n")
         self.selx("//paper-item[@value='GPU']").send_keys("\n")
         self.waitsel("#ok").send_keys("\n")
@@ -82,10 +83,11 @@ class Colaboratory(SeleniumMixin):
         self.waitsel("#connect .colab-toolbar-button").click()
     def stop(self):
         log("stop vm instance.")
-        self.waitsel("#runtime-menu-button .goog-menu-button-caption").click()
-        self.waitsel("css=#3A 21 > .goog-menuitem-content").click()
-        self.waitsel("css=.button-action-column > .style-scope").click()
-        self.waitsel("#ok").click()
+        self.sel("#runtime-menu-button").click()
+        self.selx("//div[@command='manage-sessions']").click()
+        self.waitselx("//paper-button[text()[contains(.,'Terminate')]]").send_keys("\n")
+        self.waitselx("//paper-button[@id='ok']").send_keys("\n")
+        self.selx("//paper-button[@class='dismiss style-scope colab-sessions-dialog']").send_keys("\n")
     def __init__(self):
         SeleniumMixin.__init__(self)
         self.open_colab()
