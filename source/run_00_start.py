@@ -77,8 +77,7 @@ class Colaboratory(SeleniumMixin):
         pw=self.get_auth_token(password_fn)
         log("enter login name.")
         pyperclip.copy("martinkielhorn@effectphotonics.nl")
-        time.sleep(1)
-        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
+        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
         self.sel("#identifierNext").click()
         log("enter password.")
         self.waitsel("input[type='password']").send_keys(pw)
@@ -109,7 +108,7 @@ class Colaboratory(SeleniumMixin):
         time.sleep(5)
         log("paste code into cell.")
         pyperclip.copy(code)
-        entry.send_keys(((selenium.webdriver.common.keys.Keys.CONTROL)+("v")))
+        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
         log("execute code cell.")
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
@@ -136,8 +135,11 @@ self=colab
 to_google="/dev/shm/key_from_here_to_google"
 to_here="/dev/shm/key_from_google_to_here"
 host_user=self.get_auth_token("/dev/shm/host_user")
-pathlib.Path(to_google).unlink()
-pathlib.Path(to_here).unlink()
+try:
+    pathlib.Path(to_google).unlink()
+    pathlib.Path(to_here).unlink()
+except Exception as e:
+    pass
 subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_google).split(" "))
 subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_here).split(" "))
 subprocess.call("/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys".format(to_here, host_user).split(" "))

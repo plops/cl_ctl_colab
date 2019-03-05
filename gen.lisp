@@ -136,16 +136,17 @@
 	      (log (string "enter login name."))
 
 	      (pyperclip.copy (string "martinkielhorn@effectphotonics.nl"))
-	      (time.sleep 1)
+	      ;(time.sleep 1)
 	      #+nil (dot (self.waitsel (string "#identifierId"))
 		   (send_keys (+ selenium.webdriver.common.keys.Keys.CONTROL (string "v"))))
 
 	      (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
 			 (key_down selenium.webdriver.common.keys.Keys.CONTROL)
 			 (key_down (string "v"))
-			 (key_up (string "v"))
+			 ;(key_up (string "v"))
 			 (key_up selenium.webdriver.common.keys.Keys.CONTROL)
-			 (perform))
+			 (perform)
+			 )
 	      #+nil
 	      (dot (self.waitsel (string "#identifierId"))
 		   (send_keys (string "martinkielhorn@effectphotonics.nl")))
@@ -211,6 +212,15 @@ elm.dispatchEvent(new Event('change'));
 		    (time.sleep 5)
 		    (log (string "paste code into cell."))
 		    (pyperclip.copy code)
+
+		    (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
+			 (key_down selenium.webdriver.common.keys.Keys.CONTROL)
+			 (key_down (string "v"))
+			 ;(key_up (string "v"))
+			 (key_up selenium.webdriver.common.keys.Keys.CONTROL)
+			 (perform)
+			 )
+		    #+nil
 		    (dot entry (send_keys (+ selenium.webdriver.common.keys.Keys.CONTROL (string "v"))))
 		    (log (string "execute code cell."))
 		    (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
@@ -255,8 +265,12 @@ get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} 
 	  (setf to_google (string "/dev/shm/key_from_here_to_google")
 		to_here (string "/dev/shm/key_from_google_to_here")
 		host_user (self.get_auth_token (string "/dev/shm/host_user")))
-	  (dot (pathlib.Path to_google)  (unlink))
-	  (dot (pathlib.Path to_here)    (unlink))
+	  
+	  (try
+	   (do0 (dot (pathlib.Path to_google)  (unlink))
+		(dot (pathlib.Path to_here)    (unlink)))
+	   ("Exception as e"
+	    pass))
 	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
 				(format to_google) (split (string " "))))
 	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
@@ -276,8 +290,11 @@ get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} 
 	  (setf to_google (string "/dev/shm/key_from_here_to_google")
 		to_here (string "/dev/shm/key_from_google_to_here")
 		host_user (self.get_auth_token (string "/dev/shm/host_user")))
-	  (dot (pathlib.Path to_google)  (unlink))
-	  (dot (pathlib.Path to_here)    (unlink))
+	  (try
+	   (do0 (dot (pathlib.Path to_google)  (unlink))
+		(dot (pathlib.Path to_here)    (unlink)))
+	   ("Exception as e"
+	    pass))
 	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
 				(format to_google) (split (string " "))))
 	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
