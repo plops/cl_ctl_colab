@@ -23,6 +23,7 @@
 		   selenium.webdriver.support.wait
 		   selenium.webdriver.support.expected_conditions
 					;selenium.webdriver.firefox
+		   ;pyperclip
 		   subprocess
 		   ))
 
@@ -118,12 +119,14 @@
 	       (self._driver.get site)
 	       
 	       (dot (self.sel (string ".gb_gb"))  (click))))
-	  (def get_auth_token (self fn)
+	  (def get_auth_token (self fn &key (newlines False))
 	    (do0
 	     (setf f (open fn)
-		    pw (dot (f.read)
-			    (replace (string "\\n")
-				     (string ""))))
+		   pw (f.read) )
+	     (if (not  newlines)
+		 (setf pw (dot pw
+			       (replace (string "\\n")
+					(string "")))))
 	     (f.close))
 	    (return pw))
 	  (def login (self &key (password_fn (string "/dev/shm/p")))
@@ -174,10 +177,21 @@
 	     (dot (self.waitselx (string "//paper-button[@id='ok']")) (send_keys (string "\\n")))
 	     (dot (self.selx (string "//paper-button[@class='dismiss style-scope colab-sessions-dialog']"))
 		  (send_keys (string "\\n")))))
+	  (def set_text (self element text)
+	    ;; if (!('value' in elm))
+;;  throw new Error('Expected an <input> or <textarea>');
+
+	    (element._parent.execute_script (string3 "var elm = arguments[0], text = arguments[1];
+elm.focus();
+elm.value = text;
+elm.dispatchEvent(new Event('change'));
+" element text)))
 	  (def run (self code)
 		    (dot (self.selx (string "//colab-toolbar-button[@command='add-code']")) (click))
 		    (setf entry (self._driver.switch_to_active_element))
-		    (dot entry (send_keys code))
+		    ;(pyperclip.copy code)
+					;(dot entry (send_keys (pyperclip.paste)))
+		    (self.set_text entry code)
 		    (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
 			 (key_down selenium.webdriver.common.keys.Keys.SHIFT)
 			 (key_down selenium.webdriver.common.keys.Keys.ENTER)
@@ -186,8 +200,7 @@
 			 (perform)))
 	  (def start_ssh (self &key host (host_port 22) host_user host_private_key gpu_public_key)
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
-	    (setf cmd (dot (string3 "
-! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+	    (setf cmd (dot (string3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
@@ -232,7 +245,7 @@ get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} 
 	 
 	 (colab.start_ssh :host (self.get_auth_token (string "/dev/shm/host"))
 			  :host_user host_user
-			  :host_private_key (self.get_auth_token to_here)
+			  :host_private_key (self.get_auth_token to_here :newlines True)
 			  :gpu_public_key (self.get_auth_token (dot (string "{}.pub") (format to_google)))))))
   (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code)
   (write-source "/dev/shm/s"

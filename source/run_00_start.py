@@ -65,9 +65,11 @@ class Colaboratory(SeleniumMixin):
         log("open website {}.".format(site))
         self._driver.get(site)
         self.sel(".gb_gb").click()
-    def get_auth_token(self, fn):
+    def get_auth_token(self, fn, newlines=False):
         f=open(fn)
-        pw=f.read().replace("\n", "")
+        pw=f.read()
+        if ( not(newlines) ):
+            pw=pw.replace("\n", "")
         f.close()
         return pw
     def login(self, password_fn="/dev/shm/p"):
@@ -96,14 +98,19 @@ class Colaboratory(SeleniumMixin):
         self.waitselx("//paper-button[text()[contains(.,'Terminate')]]").send_keys("\n")
         self.waitselx("//paper-button[@id='ok']").send_keys("\n")
         self.selx("//paper-button[@class='dismiss style-scope colab-sessions-dialog']").send_keys("\n")
+    def set_text(self, element, text):
+        element._parent.execute_script("""var elm = arguments[0], text = arguments[1];
+elm.focus();
+elm.value = text;
+elm.dispatchEvent(new Event('change'));
+""")
     def run(self, code):
         self.selx("//colab-toolbar-button[@command='add-code']").click()
         entry=self._driver.switch_to_active_element()
-        entry.send_keys(code)
+        self.set_text(entry, code)
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
-        cmd="""
-! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+        cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
@@ -131,4 +138,4 @@ pathlib.Path(to_here).unlink()
 subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_google).split(" "))
 subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_here).split(" "))
 subprocess.call("/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys".format(to_here, host_user).split(" "))
-colab.start_ssh(host=self.get_auth_token("/dev/shm/host"), host_user=host_user, host_private_key=self.get_auth_token(to_here), gpu_public_key=self.get_auth_token("{}.pub".format(to_google)))
+colab.start_ssh(host=self.get_auth_token("/dev/shm/host"), host_user=host_user, host_private_key=self.get_auth_token(to_here, newlines=True), gpu_public_key=self.get_auth_token("{}.pub".format(to_google)))
