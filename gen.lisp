@@ -19,10 +19,14 @@
 	 (class SeleniumMixin (object)
 		(def __init__ (self)
 		  (setf self._driver (selenium.webdriver.Chrome)
-			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 30) ))
+			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 5) ))
 	 	(def sel (self css)
+		  (log (dot (string "sel css={}")
+			    (format css)))
 		  (return (self._driver.find_element_by_css_selector css)))
 		(def selx (self xpath)
+		  (log (dot (string "sel xpath={}")
+			    (format xpath)))
 		  (return (self._driver.find_element_by_xpath xpath)))
 		(def wait_css_clickable (self css)
 		  (self._wait.until (selenium.webdriver.support.expected_conditions.element_to_be_clickable
@@ -45,7 +49,7 @@
 		  (return (self.sel css)))
 		(def waitselx (self xpath)
 		  (self.wait_xpath_clickable xpath)
-		  (return (selx xpath))))
+		  (return (self.selx xpath))))
 	 (def current_milli_time ()
            (return (int (round (* 1000 (time.time))))))
 	 
@@ -126,11 +130,16 @@
 	    (do0
 	    ;; i used css selector gadget (chromium) and selenium ide in firefox
 	    (log (string "enable gpu."))
-	    (dot (self.waitsel (string "#runtime-menu-button .goog-menu-button-caption")) (click))
-	    ;; runtime type
-	    (dot (self.waitsel (string "#input-4")) (click))
-	    (dot (self.waitselx (string "xpath=//paper-item[@value='GPU']")))
-	    (dot (self.waitsel (string "#ok")) (click))))
+	    (time.sleep 1)
+	    (dot (self.selx (string "(.//*[normalize-space(text()) and normalize-space(.)='Insert'])[1]/following::div[5]")) (click))
+	    (dot (self._driver.find_element_by_id (string ":1z")) (click))
+	    
+	    (dot (self.selx (string "//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input"))
+		 (send_keys (string "\\n")))
+	    (dot (self.selx (string "//paper-item[@value='GPU']"))
+		 (send_keys (string "\\n")))
+	    (dot (self.waitsel (string "#ok")) (send_keys (string "\\n")))
+	    ))
 	  (def start (self)
 	    (do0
 	     (log (string "start vm instance."))

@@ -9,10 +9,12 @@ import selenium.webdriver.support.expected_conditions
 class SeleniumMixin(object):
     def __init__(self):
         self._driver=selenium.webdriver.Chrome()
-        self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 30)
+        self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 5)
     def sel(self, css):
+        log("sel css={}".format(css))
         return self._driver.find_element_by_css_selector(css)
     def selx(self, xpath):
+        log("sel xpath={}".format(xpath))
         return self._driver.find_element_by_xpath(xpath)
     def wait_css_clickable(self, css):
         self._wait.until(selenium.webdriver.support.expected_conditions.element_to_be_clickable((selenium.webdriver.common.by.By.CSS_SELECTOR,css,)))
@@ -27,7 +29,7 @@ class SeleniumMixin(object):
         return self.sel(css)
     def waitselx(self, xpath):
         self.wait_xpath_clickable(xpath)
-        return selx(xpath)
+        return self.selx(xpath)
 def current_milli_time():
     return int(round(((1000)*(time.time()))))
 global g_last_timestamp
@@ -69,10 +71,12 @@ class Colaboratory(SeleniumMixin):
         self.sel("#passwordNext").click()
     def attach_gpu(self):
         log("enable gpu.")
-        self.waitsel("#runtime-menu-button .goog-menu-button-caption").click()
-        self.waitsel("#input-4").click()
-        self.waitselx("xpath=//paper-item[@value='GPU']")
-        self.waitsel("#ok").click()
+        time.sleep(1)
+        self.selx("(.//*[normalize-space(text()) and normalize-space(.)='Insert'])[1]/following::div[5]").click()
+        self._driver.find_element_by_id(":1z").click()
+        self.selx("//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input").send_keys("\n")
+        self.selx("//paper-item[@value='GPU']").send_keys("\n")
+        self.waitsel("#ok").send_keys("\n")
     def start(self):
         log("start vm instance.")
         self.waitsel("#connect .colab-toolbar-button").click()
