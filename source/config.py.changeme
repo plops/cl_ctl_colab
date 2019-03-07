@@ -1,0 +1,29 @@
+class SSHConnection(object):
+    def __init__(self, hostname='bla.org', user='root', port=22, key=None):
+        self.hostname = hostname
+        self.user = user
+        self.port = port
+        self.key = key
+
+    def __repr__(self):
+        return "{} <{}>".format(self.__class__.__name__, vars(self))
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class Config(object):
+    def __init__(self):
+        self.server = SSHConnection(
+            hostname="bla.org", user="bla", key='key_from_google_to_here')
+        self.gpu = SSHConnection(
+            hostname=None, user="root", key='key_from_here_to_google')
+
+    def __repr__(self):
+        return "{} <{}>".format(self.__class__.__name__, vars(self))
+
+    def __str__(self):
+        return self.__repr__()
+
+
+config = Config()
