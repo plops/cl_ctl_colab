@@ -1,5 +1,6 @@
 import sys
 import time
+import config
 import pathlib
 import selenium
 import selenium.webdriver

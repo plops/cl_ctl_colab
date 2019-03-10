@@ -16,6 +16,7 @@
        `(do0
 	 (imports (sys
 		   time
+		   config
 		   pathlib
 		   selenium
 		   selenium.webdriver
