@@ -291,7 +291,7 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' >> /root/.ssh/authorized_keys
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
+get_ipython().system_raw('ssh -oStrictHostKeyChecking=no  -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
 			   (format  ;; -N -A -t -o ServerAliveInterval=15 
 				    (self.get_auth_token (+ (str to_google) (string ".pub")) :newlines False)
 				   
