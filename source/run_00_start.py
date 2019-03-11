@@ -133,7 +133,7 @@ class Colaboratory(SeleniumMixin):
         self.call_shell("scp -P {} {}.pub  {}:/dev/shm/".format(self._config.server.port, str(to_here), self._config.server.hostname))
         self.call_shell("ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub".format(self._config.server.port, self._config.server.hostname, self._config.server.user, self._config.server.key))
         self.call_shell("ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys".format(self._config.server.port, self._config.server.hostname, self._config.server.key, self._config.server.user))
-        cmd=r"""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+        cmd=r"""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc

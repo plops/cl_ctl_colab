@@ -281,7 +281,7 @@ elm.dispatchEvent(new Event('change'));
 			     )))
 	    
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
-	    (setf cmd (dot (rstring3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+	    (setf cmd (dot (rstring3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
