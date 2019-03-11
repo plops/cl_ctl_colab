@@ -291,9 +291,11 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' >> /root/.ssh/authorized_keys
 ! echo -e '''{}''' > /root/.ssh/id_ed25519
 ! chmod og-rwx /root/.ssh/id_ed25519
+! echo 'starting sshd'
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15  -oStrictHostKeyChecking=no  -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
-			   (format 
+get_ipython().system_raw('ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKeyChecking=no  -l {} -p {} {} -R 2228:localhost:22 -i /root/.ssh/id_ed25519 &')")
+			   ;; ! ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKeyChecking=no  -l {} -p {} {} -R 2228:localhost:22 -i /root/.ssh/id_ed25519
+			   (format ;; -N -A -t get_ipython().system_raw('ssh -oServerAliveInterval=15  -oStrictHostKeyChecking=no  -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')
 				    (self.get_auth_token (+ (str to_google) (string ".pub")) :newlines False)
 				   
 				    (dot (self.get_auth_token (str to_here) :newlines True)
