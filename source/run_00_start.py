@@ -77,8 +77,7 @@ class Colaboratory(SeleniumMixin):
     def login(self, password_fn="/dev/shm/p"):
         pw=self.get_auth_token(password_fn)
         log("enter login name.")
-        pyperclip.copy("martinkielhorn@effectphotonics.nl")
-        selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
+        self.waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
         self.sel("#identifierNext").click()
         log("enter password.")
         self.waitsel("input[type='password']").send_keys(pw)
@@ -106,13 +105,27 @@ class Colaboratory(SeleniumMixin):
         self.selx("//colab-toolbar-button[@command='add-code']").click()
         entry=self._driver.switch_to_active_element()
         log("copy code.")
-        time.sleep(5)
         log("paste code into cell.")
         pyperclip.copy(code)
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.CONTROL).key_down("v").key_up(selenium.webdriver.common.keys.Keys.CONTROL).perform()
         log("execute code cell.")
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
-    def start_ssh(self, host=None, host_port=22, host_user=None, host_private_key=None, gpu_public_key=None):
+    def call_shell(self, cmd):
+        log("run shell command: {}".format(cmd))
+        subprocess.call(cmd.split(" "))
+    def start_ssh(self):
+        to_google=((pathlib.Path("/dev/shm/"))/(self._config.server.key))
+        to_here=((pathlib.Path("/dev/shm/"))/(self._config.gpu.key))
+        try:
+            to_google.unlink()
+            to_here.unlink()
+        except Exception as e:
+            pass
+        self.call_shell("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_google)))
+        self.call_shell("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_here)))
+        self.call_shell("scp -P {} {}.pub  {}:/dev/shm/".format(self._config.server.port, str(to_here), self._config.server.hostname))
+        self.call_shell("ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub".format(self._config.server.port, self._config.server.hostname, self._config.server.user, self._config.gpu.key))
+        self.call_shell("ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys".format(self._config.server.port, self._config.server.hostname, self._config.gpu.key, self._config.server.user))
         cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
@@ -123,25 +136,14 @@ class Colaboratory(SeleniumMixin):
 ! echo '''{}''' >> /root/.ssh/authorized_keys
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(gpu_public_key, host_private_key.replace("""(string 
-)""", "\n"), host_user, host_port, host)
+get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(self._config.gpu.key, self.get_auth_token(str(to_here), newlines=True).replace("""
+""", "\n"), self._config.server.user, self._config.server.port, self._config.server.hostname)
         self.run(cmd)
-    def __init__(self):
+    def __init__(self, config):
         SeleniumMixin.__init__(self)
+        self._config=config
         self.open_colab()
         self.login()
-        self.start()
-colab=Colaboratory()
+colab=Colaboratory(config.config)
 self=colab
-to_google="/dev/shm/key_from_here_to_google"
-to_here="/dev/shm/key_from_google_to_here"
-host_user=self.get_auth_token("/dev/shm/host_user")
-try:
-    pathlib.Path(to_google).unlink()
-    pathlib.Path(to_here).unlink()
-except Exception as e:
-    pass
-subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_google).split(" "))
-subprocess.call("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(to_here).split(" "))
-subprocess.call("/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys".format(to_here, host_user).split(" "))
-colab.start_ssh(host=self.get_auth_token("/dev/shm/host"), host_user=host_user, host_private_key=self.get_auth_token(to_here, newlines=True), gpu_public_key=self.get_auth_token("{}.pub".format(to_google)))
+colab.start_ssh()

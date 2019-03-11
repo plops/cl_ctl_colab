@@ -140,11 +140,11 @@
 	     (do0
 	      (log (string "enter login name."))
 
-	      (pyperclip.copy (string "martinkielhorn@effectphotonics.nl"))
+	      ;;(pyperclip.copy (string "martinkielhorn@effectphotonics.nl"))
 	      ;(time.sleep 1)
 	      #+nil (dot (self.waitsel (string "#identifierId"))
 		   (send_keys (+ selenium.webdriver.common.keys.Keys.CONTROL (string "v"))))
-
+	      #+nil
 	      (dot (selenium.webdriver.common.action_chains.ActionChains self._driver)
 			 (key_down selenium.webdriver.common.keys.Keys.CONTROL)
 			 (key_down (string "v"))
@@ -152,7 +152,7 @@
 			 (key_up selenium.webdriver.common.keys.Keys.CONTROL)
 			 (perform)
 			 )
-	      #+nil
+	      
 	      (dot (self.waitsel (string "#identifierId"))
 		   (send_keys (string "martinkielhorn@effectphotonics.nl")))
 	      (dot (self.sel (string "#identifierNext"))
@@ -214,7 +214,7 @@ elm.dispatchEvent(new Event('change'));
 		    
 					;(dot entry (send_keys (pyperclip.paste)))
 					;(self.set_text entry code)
-		    (time.sleep 5)
+		    ;(time.sleep 5)
 		    (log (string "paste code into cell."))
 		    (pyperclip.copy code)
 
@@ -234,7 +234,38 @@ elm.dispatchEvent(new Event('change'));
 			 (key_up selenium.webdriver.common.keys.Keys.ENTER)
 			 (key_up selenium.webdriver.common.keys.Keys.SHIFT)
 			 (perform)))
-	  (def start_ssh (self &key host (host_port 22) host_user host_private_key gpu_public_key)
+	  (def call_shell (self cmd)
+	    (log (dot (string "run shell command: {}")
+		      (format cmd)))
+	    (subprocess.call (dot cmd (split (string " ")))))
+	  (def start_ssh (self)
+
+	    (do0
+	     (setf to_google (/ (pathlib.Path (string "/dev/shm/"))
+				self._config.server.key)
+		   to_here (/ (pathlib.Path (string "/dev/shm/"))
+			      self._config.gpu.key))
+	     
+	   (try
+	    (do0 (dot to_google  (unlink))
+		 (dot to_here    (unlink)))
+	    ("Exception as e"
+	     pass))
+	   (do0
+	    (self.call_shell (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				  (format (str to_google))))
+	    (self.call_shell (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+				  (format (str to_here))))
+	    (self.call_shell (dot (string "scp -P {} {}.pub  {}:/dev/shm/")
+				  (format  self._config.server.port (str to_here) self._config.server.hostname))
+			     )
+	    (self.call_shell (dot (string "ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub")
+				  (format self._config.server.port self._config.server.hostname self._config.server.user self._config.gpu.key ))
+			     )
+	    (self.call_shell (dot (string "ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys")
+				  (format self._config.server.port self._config.server.hostname self._config.gpu.key self._config.server.user))
+			     )))
+	    
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
 	    (setf cmd (dot (string3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
@@ -247,48 +278,32 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
 get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
-			   (format gpu_public_key
-				   (dot host_private_key
-					(replace (string3 (string "
-"))
+			   (format self._config.gpu.key
+				   (dot (self.get_auth_token (str to_here) :newlines True)
+					(replace (string3 "
+")
 						 (string "\\n")))
-				   host_user
-				   host_port
-				   host)))
+				   self._config.server.user
+				   self._config.server.port
+				   self._config.server.hostname)))
 	    (self.run cmd))
-	  (def __init__ (self)
+	  (def __init__ (self config)
 	    (SeleniumMixin.__init__ self)
+	    (setf self._config config)
 	    (self.open_colab)
-	    (self.login)
+ 	    (self.login)
 					;(self.attach_gpu)
-	    (self.start)
+	    ; (self.start)
 	    
 	    ))
 
 
-	 (setf colab (Colaboratory))
+	 (setf colab (Colaboratory config.config))
 	 (do0
-		   (setf self colab)
-	  (setf to_google (string "/dev/shm/key_from_here_to_google")
-		to_here (string "/dev/shm/key_from_google_to_here")
-		host_user (self.get_auth_token (string "/dev/shm/host_user")))
-	  
-	  (try
-	   (do0 (dot (pathlib.Path to_google)  (unlink))
-		(dot (pathlib.Path to_here)    (unlink)))
-	   ("Exception as e"
-	    pass))
-	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
-				(format to_google) (split (string " "))))
-	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
-				(format to_here) (split (string " "))))
-	  (subprocess.call (dot (string "/usr/bin/sudo /bin/cp {}.pub /home/{}/.ssh/authorized_keys")
-				(format to_here host_user) (split (string " ")))))
+	  (setf self colab)
+	  )
 	 
-	 (colab.start_ssh :host (self.get_auth_token (string "/dev/shm/host"))
-			  :host_user host_user
-			  :host_private_key (self.get_auth_token to_here :newlines True)
-			  :gpu_public_key (self.get_auth_token (dot (string "{}.pub") (format to_google)))))))
+	 (colab.start_ssh))))
   (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code)
   (write-source "/dev/shm/s"
 		`(do0
