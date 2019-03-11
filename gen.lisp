@@ -274,10 +274,10 @@ elm.dispatchEvent(new Event('change'));
 				  (format  self._config.server.port (str to_here) self._config.server.hostname))
 			     )
 	    (self.call_shell (dot (string "ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub")
-				  (format self._config.server.port self._config.server.hostname self._config.server.user self._config.gpu.key ))
+				  (format self._config.server.port self._config.server.hostname self._config.server.user self._config.server.key ))
 			     )
 	    (self.call_shell (dot (string "ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys")
-				  (format self._config.server.port self._config.server.hostname self._config.gpu.key self._config.server.user))
+				  (format self._config.server.port self._config.server.hostname self._config.server.key self._config.server.user))
 			     )))
 	    
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
@@ -291,17 +291,17 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' >> /root/.ssh/authorized_keys
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
-			   (format 
-				   (self.get_auth_token (+ (str to_google) (string ".pub")) :newlines False)
+get_ipython().system_raw('ssh -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
+			   (format  ;; -N -A -t -o ServerAliveInterval=15 
+				    (self.get_auth_token (+ (str to_google) (string ".pub")) :newlines False)
 				   
-				   (dot (self.get_auth_token (str to_here) :newlines True)
-					(replace (string3 "
+				    (dot (self.get_auth_token (str to_here) :newlines True)
+					 (replace (string3 "
 ")
-						 (string "\\\\n")))
-				   self._config.server.user
-				   self._config.server.port
-				   self._config.server.hostname)))
+						  (string "\\\\n")))
+				    self._config.server.user
+				    self._config.server.port
+				    self._config.server.hostname)))
 	    (self.run cmd))
 	  (def __init__ (self config)
 	    (SeleniumMixin.__init__ self)
