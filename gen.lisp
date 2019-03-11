@@ -34,7 +34,8 @@
 
 	 (class SeleniumMixin (object)
 		(def __init__ (self)
-		  (setf self._driver (selenium.webdriver.Chrome)
+		  (setf self._driver (selenium.webdriver.Firefox ; Chrome
+				      )
 			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 2)))
 	 	(def sel (self css)
 		  (log (dot (string "sel css={}")
@@ -267,7 +268,7 @@ elm.dispatchEvent(new Event('change'));
 			     )))
 	    
 	    ;; https://gist.github.com/creotiv/d091515703672ec0bf1a6271336806f0
-	    (setf cmd (dot (string3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+	    (setf cmd (dot (rstring3 "! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
@@ -278,11 +279,13 @@ elm.dispatchEvent(new Event('change'));
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
 get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')")
-			   (format self._config.gpu.key
+			   (format 
+				   (self.get_auth_token (+ (str to_google) (string ".pub")) :newlines False)
+				   
 				   (dot (self.get_auth_token (str to_here) :newlines True)
 					(replace (string3 "
 ")
-						 (string "\\n")))
+						 (string "\\\\n")))
 				   self._config.server.user
 				   self._config.server.port
 				   self._config.server.hostname)))

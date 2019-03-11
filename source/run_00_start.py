@@ -15,7 +15,7 @@ import pyperclip
 import subprocess
 class SeleniumMixin(object):
     def __init__(self):
-        self._driver=selenium.webdriver.Chrome()
+        self._driver=selenium.webdriver.Firefox()
         self._wait=selenium.webdriver.support.wait.WebDriverWait(self._driver, 2)
     def sel(self, css):
         log("sel css={}".format(css))
@@ -126,7 +126,7 @@ class Colaboratory(SeleniumMixin):
         self.call_shell("scp -P {} {}.pub  {}:/dev/shm/".format(self._config.server.port, str(to_here), self._config.server.hostname))
         self.call_shell("ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub".format(self._config.server.port, self._config.server.hostname, self._config.server.user, self._config.gpu.key))
         self.call_shell("ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys".format(self._config.server.port, self._config.server.hostname, self._config.gpu.key, self._config.server.user))
-        cmd="""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
+        cmd=r"""! apt-get install -qq -o=Dpkg::Use-Pty=0 openssh-server pwgen > /dev/null
 ! mkdir -p /var/run/sshd
 ! echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
 ! echo 'LD_LIBRARY_PATH=/usr/lib64-nvidia' >> /root/.bashrc
@@ -136,8 +136,8 @@ class Colaboratory(SeleniumMixin):
 ! echo '''{}''' >> /root/.ssh/authorized_keys
 ! echo '''{}''' > /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(self._config.gpu.key, self.get_auth_token(str(to_here), newlines=True).replace("""
-""", "\n"), self._config.server.user, self._config.server.port, self._config.server.hostname)
+get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(self.get_auth_token(((str(to_google))+(".pub")), newlines=False), self.get_auth_token(str(to_here), newlines=True).replace("""
+""", "\\n"), self._config.server.user, self._config.server.port, self._config.server.hostname)
         self.run(cmd)
     def __init__(self, config):
         SeleniumMixin.__init__(self)
