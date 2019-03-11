@@ -141,9 +141,10 @@ class Colaboratory(SeleniumMixin):
 ! mkdir /root/.ssh
 ! chmod go-rwx /root/.ssh
 ! echo '''{}''' >> /root/.ssh/authorized_keys
-! echo '''{}''' > /root/.ssh/id_ed25519
+! echo -e '''{}''' > /root/.ssh/id_ed25519
+! chmod og-rwx /root/.ssh/id_ed25519
 get_ipython().system_raw('/usr/sbin/sshd -D &')
-get_ipython().system_raw('ssh -o ServerAliveInterval=15 -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(self.get_auth_token(((str(to_google))+(".pub")), newlines=False), self.get_auth_token(str(to_here), newlines=True).replace("""
+get_ipython().system_raw('ssh -N -A -t -o ServerAliveInterval=15  -oStrictHostKeyChecking=no  -l {} -p {} {} -R 22:localhost:2228 -i /root/.ssh/id_ed25519')""".format(self.get_auth_token(((str(to_google))+(".pub")), newlines=False), self.get_auth_token(str(to_here), newlines=True).replace("""
 """, "\\n"), self._config.server.user, self._config.server.port, self._config.server.hostname)
         self.run(cmd)
     def __init__(self, config):
