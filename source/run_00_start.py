@@ -111,18 +111,25 @@ class Colaboratory(SeleniumMixin):
         log("execute code cell.")
         selenium.webdriver.common.action_chains.ActionChains(self._driver).key_down(selenium.webdriver.common.keys.Keys.SHIFT).key_down(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.ENTER).key_up(selenium.webdriver.common.keys.Keys.SHIFT).perform()
     def call_shell(self, cmd):
-        log("run shell command: {}".format(cmd))
-        subprocess.call(cmd.split(" "))
+        s=cmd.split(" ")
+        r=subprocess.call(s)
+        log("ran shell command: {} = {}".format(s, r))
+        return r
+    def call_shellt(self, cmd):
+        s=cmd
+        r=subprocess.call(s, shell=True)
+        log("ran shell command: {} = {}".format(s, r))
+        return r
     def start_ssh(self):
-        to_google=((pathlib.Path("/dev/shm/"))/(self._config.server.key))
-        to_here=((pathlib.Path("/dev/shm/"))/(self._config.gpu.key))
+        to_here=((pathlib.Path("/dev/shm/"))/(self._config.server.key))
+        to_google=((pathlib.Path("/dev/shm/"))/(self._config.gpu.key))
         try:
             to_google.unlink()
             to_here.unlink()
         except Exception as e:
             pass
-        self.call_shell("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_google)))
-        self.call_shell("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_here)))
+        self.call_shellt("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_google)))
+        self.call_shellt("/usr/bin/ssh-keygen -t ed25519 -N '' -f {}".format(str(to_here)))
         self.call_shell("scp -P {} {}.pub  {}:/dev/shm/".format(self._config.server.port, str(to_here), self._config.server.hostname))
         self.call_shell("ssh -p {} {} sudo chown {}.users /dev/shm/{}.pub".format(self._config.server.port, self._config.server.hostname, self._config.server.user, self._config.gpu.key))
         self.call_shell("ssh -p {} {} sudo mv /dev/shm/{}.pub /home/{}/.ssh/authorized_keys".format(self._config.server.port, self._config.server.hostname, self._config.gpu.key, self._config.server.user))

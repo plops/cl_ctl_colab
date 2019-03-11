@@ -236,15 +236,28 @@ elm.dispatchEvent(new Event('change'));
 			 (key_up selenium.webdriver.common.keys.Keys.SHIFT)
 			 (perform)))
 	  (def call_shell (self cmd)
-	    (log (dot (string "run shell command: {}")
-		      (format cmd)))
-	    (subprocess.call (dot cmd (split (string " ")))))
+	    (setf s (dot cmd (split (string " "))))
+	    (setf r (subprocess.call s))
+	    (log (dot (string "ran shell command: {} = {}")
+		      (format s r)))
+	    
+	    
+	    (return r))
+	  (def call_shellt (self cmd)
+	    (setf s cmd ;(dot cmd (split (string " ")))
+		  )
+	    (setf r (subprocess.call s :shell True))
+	    (log (dot (string "ran shell command: {} = {}")
+		      (format s r)))
+	    
+	    
+	    (return r))
 	  (def start_ssh (self)
 
 	    (do0
-	     (setf to_google (/ (pathlib.Path (string "/dev/shm/"))
+	     (setf to_here (/ (pathlib.Path (string "/dev/shm/"))
 				self._config.server.key)
-		   to_here (/ (pathlib.Path (string "/dev/shm/"))
+		   to_google (/ (pathlib.Path (string "/dev/shm/"))
 			      self._config.gpu.key))
 	     
 	   (try
@@ -253,9 +266,9 @@ elm.dispatchEvent(new Event('change'));
 	    ("Exception as e"
 	     pass))
 	   (do0
-	    (self.call_shell (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+	    (self.call_shellt (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
 				  (format (str to_google))))
-	    (self.call_shell (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
+	    (self.call_shellt (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
 				  (format (str to_here))))
 	    (self.call_shell (dot (string "scp -P {} {}.pub  {}:/dev/shm/")
 				  (format  self._config.server.port (str to_here) self._config.server.hostname))
