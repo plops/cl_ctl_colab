@@ -1,0 +1,20 @@
+* Introduction
+
+This is python code that uses selenium to control a browser to log into google colab and open an ssh tunnel to an external server.
+
+* Dependendencies
+
+- external ssh server
+- firefox or chrome
+- ssh-keygen
+
+* Overview
+| source          | generator          | importance | comment                                                                                      |
+|-----------------+--------------------+------------+----------------------------------------------------------------------------------------------|
+| config.py       | config.py.changeme |          1 | contains ssh configuration for the colab server and your own server                          |
+| run_00_start.py | gen.lisp           |          1 | starts a web browser, logs into to google colab, starts an instance, installs sshd with keys |
+
+
+
+* References: 
+- Profiling: https://devblogs.nvidia.com/using-nsight-compute-nvprof-mixed-precision-deep-learning-models/
