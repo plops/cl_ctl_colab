@@ -87,9 +87,9 @@ class Colaboratory(SeleniumMixin):
         time.sleep(1)
         self.sel("#runtime-menu-button").click()
         self.waitselx("//div[@command='change-runtime-type']").click()
-        self.waitselx("//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input").send_keys("\n")
-        self.waitselx("//paper-item[@value='GPU']").send_keys("\n")
-        self.waitsel("#ok").send_keys("\n")
+        self.waitselx("//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input").click()
+        self.waitselx("//paper-item[@value='GPU']").click()
+        self.waitsel("#ok").click()
     def start(self):
         log("start vm instance.")
         self.waitsel("#connect .colab-toolbar-button").click()
@@ -154,6 +154,7 @@ get_ipython().system_raw('ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKey
         self.open_colab()
         self.login()
         self.attach_gpu()
+        self.start()
 colab=Colaboratory(config.config)
 self=colab
 colab.start_ssh()

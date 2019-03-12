@@ -1,6 +1,11 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
   (ql:quickload "cl-py-generator")
   (ql:quickload "cl-ppcre"))
+(progn
+  (setf *features* (set-difference *features* '(:firefox :chrome)))
+  (setf *features* (union *features* '(:firefox ; :chrome
+				       ))))
+
 
 
 
@@ -34,7 +39,9 @@
 
 	 (class SeleniumMixin (object)
 		(def __init__ (self)
-		  (setf self._driver (selenium.webdriver.Firefox ; Chrome
+		  (setf self._driver (dot selenium.webdriver
+					  #+firefox (Firefox)
+					  #+chrome (Chrome)
 				      )
 			self._wait (selenium.webdriver.support.wait.WebDriverWait self._driver 2)))
 	 	(def sel (self css)
@@ -177,10 +184,15 @@
 	    (dot (self.waitselx (string "//div[@command='change-runtime-type']")) (click))
 	    
 	    (dot (self.waitselx (string "//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input"))
+		 #+firefox (click)
+		 #+chrome
 		 (send_keys (string "\\n")))
 	    (dot (self.waitselx (string "//paper-item[@value='GPU']"))
-		 (send_keys (string "\\n")))
-	    (dot (self.waitsel (string "#ok")) (send_keys (string "\\n")))
+		 #+firefox (click)
+		 #+chrome (send_keys (string "\\n")))
+	    (dot (self.waitsel (string "#ok"))
+		 #+firefox (click)
+		 #+chrome (send_keys (string "\\n")))
 	    ))
 	  (def start (self)
 	    (do0
@@ -312,7 +324,7 @@ get_ipython().system_raw('ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKey
 	    (self.open_colab)
  	    (self.login)
 	    (self.attach_gpu)
-	    ;(self.start)
+	    (self.start)
 	    
 	    ))
 
@@ -326,19 +338,4 @@ get_ipython().system_raw('ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKey
   (write-source "/home/martin/stage/cl_ctl_colab/source/run_00_start" code)
   (write-source "/dev/shm/s"
 		`(do0
-		  (do0
-		   (setf self colab)
-	  (setf to_google (string "/dev/shm/key_from_here_to_google")
-		to_here (string "/dev/shm/key_from_google_to_here")
-		host_user (self.get_auth_token (string "/dev/shm/host_user")))
-	  (try
-	   (do0 (dot (pathlib.Path to_google)  (unlink))
-		(dot (pathlib.Path to_here)    (unlink)))
-	   ("Exception as e"
-	    pass))
-	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
-				(format to_google) (split (string " "))))
-	  (subprocess.call (dot (string "/usr/bin/ssh-keygen -t ed25519 -N '' -f {}")
-				(format to_here) (split (string " "))))
-	  (subprocess.call (dot (string "/usr/bin/sudo /bin/cp {} /home/{}/.ssh/authorized_keys")
-				(format to_here host_user) (split (string " "))))))))
+		)))
