@@ -18,3 +18,4 @@ This is python code that uses selenium to control a browser to log into google c
 
 * References: 
 - Profiling: https://devblogs.nvidia.com/using-nsight-compute-nvprof-mixed-precision-deep-learning-models/
+- Optimizing HPC simulation and visualization code using NVIDIA Nsight systems https://www.youtube.com/watch?v=UaFnnXH6U4E

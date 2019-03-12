@@ -174,11 +174,11 @@
 	    
 					;(dot (self._driver.find_element_by_id (string ":1z")) (click))
 	    (dot (self.sel (string "#runtime-menu-button")) (click))
-	    (dot (self.selx (string "//div[@command='change-runtime-type']")) (click))
+	    (dot (self.waitselx (string "//div[@command='change-runtime-type']")) (click))
 	    
-	    (dot (self.selx (string "//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input"))
+	    (dot (self.waitselx (string "//paper-dropdown-menu[@id='accelerators-menu']/paper-menu-button//input"))
 		 (send_keys (string "\\n")))
-	    (dot (self.selx (string "//paper-item[@value='GPU']"))
+	    (dot (self.waitselx (string "//paper-item[@value='GPU']"))
 		 (send_keys (string "\\n")))
 	    (dot (self.waitsel (string "#ok")) (send_keys (string "\\n")))
 	    ))
@@ -311,8 +311,8 @@ get_ipython().system_raw('ssh -N -A -t -oServerAliveInterval=15  -oStrictHostKey
 	    (setf self._config config)
 	    (self.open_colab)
  	    (self.login)
-					;(self.attach_gpu)
-	    ; (self.start)
+	    (self.attach_gpu)
+	    ;(self.start)
 	    
 	    ))
 
