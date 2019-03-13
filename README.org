@@ -17,9 +17,24 @@ This is python code that uses selenium to control a browser to log into google c
 
 
 * Useful Packages
-- nvidia-nsight nvidia-profiler
+- net-tools .. netstat
+- mesa-utils .. glxinfo
+- nvidia-nsight nvidia-profiler might not be necessary, cuda-nsight already there?
 - sudo nvidia-xconfig -a --allow-empty-initial-configuration --use-display-device=None --virtual=1024x768
 - https://virtualgl.org/Documentation/HeadlessNV
+- https://gist.github.com/dingran/bed1825cc90c085b0deb0f487f059ecf
+#+BEGIN_SRC sh
+sudo apt-get install ubuntu-desktop gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install vnc4server
+sudo apt install xterm fvwm
+vncserver -geometry 1024x768
+/usr/local/cuda-10.0/bin/nsight
+#+END_SRC
+- http://theterminallife.com/virtualgl-on-centos-7-using-nvidia-tesla-gpus/
+
+
 
 * References: 
 - Profiling: https://devblogs.nvidia.com/using-nsight-compute-nvprof-mixed-precision-deep-learning-models/
