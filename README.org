@@ -16,6 +16,11 @@ This is python code that uses selenium to control a browser to log into google c
 
 
 
+* Useful Packages
+- nvidia-nsight nvidia-profiler
+- sudo nvidia-xconfig -a --allow-empty-initial-configuration --use-display-device=None --virtual=1024x768
+- https://virtualgl.org/Documentation/HeadlessNV
+
 * References: 
 - Profiling: https://devblogs.nvidia.com/using-nsight-compute-nvprof-mixed-precision-deep-learning-models/
 - Optimizing HPC simulation and visualization code using NVIDIA Nsight systems https://www.youtube.com/watch?v=UaFnnXH6U4E
