@@ -25,7 +25,7 @@ This is python code that uses selenium to control a browser to log into google c
 #sudo apt-get update
 #sudo apt-get upgrade
 export PATH=$PATH:/usr/local/cuda/bin
-sudo apt install vnc4server xterm fvwm sbcl
+sudo apt install vnc4server xterm fvwm sbcl nvidia-nsight
 wget https://beta.quicklisp.org/quicklisp.lisp
 sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper") (sb-ext:quit))'
 cat >/root/.sbclrc <<EOL
@@ -49,7 +49,7 @@ vncserver -geometry 1024x768
 export DISPLAY=:0
 /usr/local/cuda-10.0/bin/nsight
 #+END_SRC
-
+- nvidia-nsight installs 9 into /usr/bin/nsight but it seems to pull in the dependencies required to run the cuda 10 version (which is already in /usr/local/cuda/bin/nsight)
 
 * Useful Packages
 - net-tools .. netstat
