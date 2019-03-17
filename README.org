@@ -49,7 +49,8 @@ vncserver -geometry 1024x768
 export DISPLAY=:0
 /usr/local/cuda-10.0/bin/nsight
 #+END_SRC
-- nvidia-nsight installs 9 into /usr/bin/nsight but it seems to pull in the dependencies required to run the cuda 10 version (which is already in /usr/local/cuda/bin/nsight)
+- nvidia-nsight installs 9.1 into /usr/bin/nsight but it seems to pull in the dependencies required to run the cuda 10 version (which is already in /usr/local/cuda/bin/nsight)
+- cuda10 nsight crashes
 
 * Useful Packages
 - net-tools .. netstat
