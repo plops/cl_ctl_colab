@@ -144,7 +144,7 @@
 					(string "")))))
 	     (f.close))
 	    (return pw))
-	  (def login (self &key (password_fn (string "/dev/shm/p")))
+	  (def login (self &key (password_fn (string "/home/martin/stage/cl_ctl_colab/source/p")))
 	    (do0
 	     (setf pw (self.get_auth_token password_fn))
 	     (do0

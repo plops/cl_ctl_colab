@@ -17,7 +17,7 @@ This is python code that uses selenium to control a browser to log into google c
 
 * Usage:
 
-- add server into source/config.py, change user name in run_00_start.py, add passwd in /dev/shm/p
+- add server into source/config.py, change user name in run_00_start.py, add passwd in source/p
 - run python run_00_start.py this will install keys on google server and establish tunnel to server
 - ssh server -L 2228:localhost:2228
 - cd /dev/shm;  ssh -p 2228 localhost -l root -i key_from_here_to_google -L 5901:localhost:5901

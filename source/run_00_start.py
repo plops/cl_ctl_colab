@@ -74,7 +74,7 @@ class Colaboratory(SeleniumMixin):
             pw=pw.replace("\n", "")
         f.close()
         return pw
-    def login(self, password_fn="/dev/shm/p"):
+    def login(self, password_fn="/home/martin/stage/cl_ctl_colab/source/p"):
         pw=self.get_auth_token(password_fn)
         log("enter login name.")
         self.waitsel("#identifierId").send_keys("martinkielhorn@effectphotonics.nl")
