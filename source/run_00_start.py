@@ -66,7 +66,7 @@ class Colaboratory(SeleniumMixin):
         site="https://colab.research.google.com/notebooks/welcome.ipynb"
         log("open website {}.".format(site))
         self._driver.get(site)
-        self.sel(".gb_gb").click()
+        self.selx("//a[text()='Sign in']").click()
     def get_auth_token(self, fn, newlines=False):
         f=open(fn)
         pw=f.read()

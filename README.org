@@ -15,6 +15,12 @@ This is python code that uses selenium to control a browser to log into google c
 | run_00_start.py | gen.lisp           |          1 | starts a web browser, logs into to google colab, starts an instance, installs sshd with keys |
 
 
+* How to call:
+
+- add server into source/config.py, change user name in run_00_start.py, add passwd in /dev/shm/p
+- run python run_00_start.py this will install keys on google server and establish tunnel to server
+- ssh server -L 2228:localhost:2228
+- cd /dev/shm;  ssh -p 2228 localhost -l root -i key_from_here_to_google
 
 * Useful Packages
 - net-tools .. netstat
