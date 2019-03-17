@@ -26,7 +26,7 @@ This is python code that uses selenium to control a browser to log into google c
 #sudo apt-get upgrade
 sudo apt install vnc4server xterm fvwm sbcl
 wget https://beta.quicklisp.org/quicklisp.lisp
-sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper"))'
+sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper") (sb-ext:quit))'
 cat >/root/.sbclrc <<EOL
 #-quicklisp
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
