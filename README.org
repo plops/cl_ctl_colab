@@ -24,6 +24,7 @@ This is python code that uses selenium to control a browser to log into google c
 #+BEGIN_SRC sh
 #sudo apt-get update
 #sudo apt-get upgrade
+export PATH=$PATH:/usr/local/cuda/bin
 sudo apt install vnc4server xterm fvwm sbcl
 wget https://beta.quicklisp.org/quicklisp.lisp
 sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper") (sb-ext:quit))'
@@ -45,7 +46,7 @@ cd b
 cmake ..
 make
 vncserver -geometry 1024x768
-export PATH=$PATH:/usr/local/cuda/bin
+export DISPLAY=:0
 /usr/local/cuda-10.0/bin/nsight
 #+END_SRC
 
