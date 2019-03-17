@@ -15,12 +15,40 @@ This is python code that uses selenium to control a browser to log into google c
 | run_00_start.py | gen.lisp           |          1 | starts a web browser, logs into to google colab, starts an instance, installs sshd with keys |
 
 
-* How to call:
+* Usage:
 
 - add server into source/config.py, change user name in run_00_start.py, add passwd in /dev/shm/p
 - run python run_00_start.py this will install keys on google server and establish tunnel to server
 - ssh server -L 2228:localhost:2228
-- cd /dev/shm;  ssh -p 2228 localhost -l root -i key_from_here_to_google
+- cd /dev/shm;  ssh -p 2228 localhost -l root -i key_from_here_to_google -L 5901:localhost:5901
+#+BEGIN_SRC sh
+#sudo apt-get update
+#sudo apt-get upgrade
+sudo apt install vnc4server xterm fvwm sbcl
+wget https://beta.quicklisp.org/quicklisp.lisp
+sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper"))'
+cat >/root/.sbclrc <<EOL
+#-quicklisp
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+EOL
+cd /root/quicklisp/local-projects
+git clone https://github.com/plops/cl-cpp-generator
+git clone https://github.com/plops/cl-py-generator
+git clone https://github.com/plops/cl_ctl_colab
+git clone https://github.com/plops/cl-gen-cufft
+cd cl-gen-cufft/source
+mkdir b
+cd b
+cmake ..
+make
+vncserver -geometry 1024x768
+export PATH=$PATH:/usr/local/cuda/bin
+/usr/local/cuda-10.0/bin/nsight
+#+END_SRC
+
 
 * Useful Packages
 - net-tools .. netstat
@@ -29,6 +57,7 @@ This is python code that uses selenium to control a browser to log into google c
 - sudo nvidia-xconfig -a --allow-empty-initial-configuration --use-display-device=None --virtual=1024x768
 - https://virtualgl.org/Documentation/HeadlessNV
 - https://gist.github.com/dingran/bed1825cc90c085b0deb0f487f059ecf
+- unminimize to make system fit for interactive use. is this really necessary?
 #+BEGIN_SRC sh
 sudo apt-get install ubuntu-desktop gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal
 sudo apt-get update
