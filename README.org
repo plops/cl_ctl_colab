@@ -36,7 +36,7 @@ cat >/root/.sbclrc <<EOL
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 EOL
-cd /root/quicklisp/local-projects
+cd ~/quicklisp/local-projects
 git clone https://github.com/plops/cl-cpp-generator
 git clone https://github.com/plops/cl-py-generator
 git clone https://github.com/plops/cl_ctl_colab
@@ -48,10 +48,18 @@ cmake ..
 make
 vncserver -geometry 1024x768
 export DISPLAY=:0
+useradd martin
+mkdir /home/martin
+chown martin.martin /home/martin
+
 /usr/local/cuda-10.0/bin/nsight
 #+END_SRC
 - nvidia-nsight installs 9.1 into /usr/bin/nsight but it seems to pull in the dependencies required to run the cuda 10 version (which is already in /usr/local/cuda/bin/nsight)
 - cuda10 nsight crashes
+- in /etc/hosts add 127.0.0.1 sinta  on  laptop
+- open nvidia nsight compute on laptop, connection to sinta:2228 with the user
+- deployment takes a long time, so perhaps i should rather run nsight on the gpu instance or copy the required files in a compressed archive
+- we need port 4501 of the gpu cloud target: `ssh -p 2228 localhost -i /dev/shm/key_from_here_to_google -l root -L 4501:localhost:4501`
 
 * Useful Packages
 - net-tools .. netstat
