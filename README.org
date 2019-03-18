@@ -24,8 +24,9 @@ This is python code that uses selenium to control a browser to log into google c
 #+BEGIN_SRC sh
 #sudo apt-get update
 #sudo apt-get upgrade
+#copy nvidia nsight compute
 export PATH=$PATH:/usr/local/cuda/bin
-sudo apt install vnc4server xterm fvwm sbcl nvidia-nsight
+sudo apt install sbcl  vnc4server xterm fvwm nvidia-nsight
 wget https://beta.quicklisp.org/quicklisp.lisp
 sbcl --load quicklisp.lisp --eval '(progn (quicklisp-quickstart:install))' --eval '(progn (ql:quickload "quicklisp-slime-helper") (sb-ext:quit))'
 cat >/root/.sbclrc <<EOL
