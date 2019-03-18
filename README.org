@@ -72,6 +72,9 @@ vncserver -geometry 1024x768
 - http://theterminallife.com/virtualgl-on-centos-7-using-nvidia-tesla-gpus/
 
 
+* Note for Gentoo
+- dev-python/selenium 3.0.2 does not work with firefox 65.0.2
+- i use `pip install --user selenium`
 
 * References: 
 - Profiling: https://devblogs.nvidia.com/using-nsight-compute-nvprof-mixed-precision-deep-learning-models/
