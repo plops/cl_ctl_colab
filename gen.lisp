@@ -130,7 +130,7 @@
 	     (log (dot (string "open website {}.")
 		       (format site)))
 	       (self._driver.get site)
-	       (dot (self.selx  (string "//a[text()='Sign in']"))
+	       (dot (self.waitselx  (string "//a[text()='Sign in']"))
 		    (click))
 	       #+nil
 	       (dot (self.sel (string ".gb_gb"))  (click))))
